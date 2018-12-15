@@ -17,6 +17,24 @@ func main() {
 	reactedPolymer := react(polymer)
 	fmt.Printf("reacted polymer is %s\n", reactedPolymer)
 	fmt.Printf("%d units\n", len(reactedPolymer))
+
+	// Part 2
+	alphabet := "abcdefghijklmnopqrstuvwxyz"
+	shortestPolymerLength := len(polymer)
+	var unitToRemove string
+
+	for i := 0; i < len(alphabet); i++ {
+		var fixedPolymer string
+		fixedPolymer = strings.Replace(polymer, string(alphabet[i]), "", -1)
+		fixedPolymer = strings.Replace(fixedPolymer, strings.ToUpper(string(alphabet[i])), "", -1)
+		reactedFixedPolymer := react(fixedPolymer)
+		if len(reactedFixedPolymer) < shortestPolymerLength {
+			shortestPolymerLength = len(reactedFixedPolymer)
+			unitToRemove = string(alphabet[i])
+		}
+	}
+
+	fmt.Printf("Shortest possible polymer is %d units long by removing %s\n", shortestPolymerLength, unitToRemove)
 }
 
 func checkPair(pair string) string {
