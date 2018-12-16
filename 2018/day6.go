@@ -14,6 +14,11 @@ type point struct {
 	y int
 }
 
+type gridSquare struct {
+	closestPoint  int
+	totalDistance int
+}
+
 func main() {
 	fmt.Println("advent of code day 6")
 
@@ -38,11 +43,12 @@ func main() {
 		}
 	}
 
-	var grid = make([][]int, maxY)
+	var grid = make([][]gridSquare, maxY)
 	for i := range grid {
-		grid[i] = make([]int, maxX)
+		grid[i] = make([]gridSquare, maxX)
 		for j := range grid[i] {
-			grid[i][j] = findClosestPoint(i, j, points, maxX+maxY)
+			grid[i][j].closestPoint = findClosestPoint(i, j, points, maxX+maxY)
+			grid[i][j].totalDistance = findTotalDistance(i, j, points)
 		}
 	}
 
@@ -50,18 +56,17 @@ func main() {
 	// that's everything in grid[0] and grid[maxX-1]
 	var infinites = []int{}
 	for i := range grid[0] {
-		infinites = addInfinite(infinites, grid[0][i])
-		infinites = addInfinite(infinites, grid[maxY-1][i])
+		infinites = addInfinite(infinites, grid[0][i].closestPoint)
+		infinites = addInfinite(infinites, grid[maxY-1][i].closestPoint)
 	}
 	for i := 0; i < maxY; i++ {
-		infinites = addInfinite(infinites, grid[i][0])
-		infinites = addInfinite(infinites, grid[i][maxX-1])
+		infinites = addInfinite(infinites, grid[i][0].closestPoint)
+		infinites = addInfinite(infinites, grid[i][maxX-1].closestPoint)
 	}
 
 	var biggestArea int
 	for i := range points {
-		if isInList(infinites, i) {
-		} else {
+		if !isInList(infinites, i) {
 			area := countArea(grid, i)
 			if area > biggestArea {
 				biggestArea = area
@@ -69,12 +74,22 @@ func main() {
 		}
 	}
 	fmt.Printf("The biggest area is %d\n", biggestArea)
+
+	var closestArea int
+	for i := range grid {
+		for j := range grid[i] {
+			if grid[i][j].totalDistance < 10000 {
+				closestArea++
+			}
+		}
+	}
+	fmt.Printf("The closest area is %d squares big\n", closestArea)
 }
 
 func findClosestPoint(i int, j int, points []point, max int) int {
 	var closestPoint int
 	for index, point := range points {
-		distance := int(math.Abs(float64(i-point.y)) + math.Abs(float64(j-point.x)))
+		distance := getDistance(i, j, point)
 		if distance < max {
 			max = distance
 			closestPoint = index
@@ -85,6 +100,18 @@ func findClosestPoint(i int, j int, points []point, max int) int {
 	}
 
 	return closestPoint
+}
+
+func findTotalDistance(i int, j int, points []point) int {
+	var totalDistance int
+	for _, point := range points {
+		totalDistance += getDistance(i, j, point)
+	}
+	return totalDistance
+}
+
+func getDistance(i int, j int, p point) int {
+	return int(math.Abs(float64(i-p.y)) + math.Abs(float64(j-p.x)))
 }
 
 func addInfinite(infinites []int, inf int) []int {
@@ -115,12 +142,12 @@ func isInList(list []int, item int) bool {
 	return inList
 }
 
-func countArea(grid [][]int, item int) int {
+func countArea(grid [][]gridSquare, item int) int {
 	var area int
 
 	for i := range grid {
 		for j := range grid[i] {
-			if grid[i][j] == item {
+			if grid[i][j].closestPoint == item {
 				area++
 			}
 		}
